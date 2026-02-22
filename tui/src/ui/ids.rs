@@ -120,6 +120,7 @@ impl From<&IdCETheme> for IdConfigEditor {
 #[derive(Debug, Eq, PartialEq, Clone, Copy, Hash)]
 pub enum IdCEGeneral {
     MusicDir,
+    DisplayPlayList,
     ExitConfirmation,
     AlbumPhotoAlign,
     ExtraYtdlpArgs,

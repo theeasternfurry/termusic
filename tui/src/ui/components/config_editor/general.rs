@@ -120,6 +120,45 @@ impl Component<Msg, UserEvent> for MusicDir {
     }
 }
 
+#[derive(MockComponent)]
+pub struct DisplayPlayList {
+    component: Input,
+    config: SharedTuiSettings,
+}
+
+impl DisplayPlayList {
+    pub fn new(config: CombinedSettings) -> Self {
+        let config_tui = config.tui.read();
+        let display_playlist_input = String::new();
+        let component =
+            common_input_comp(&config_tui, " Display Playlist (use ; to separate) ")
+                .input_type(InputType::Text)
+                .placeholder(
+                    "duration;artist;title;album",
+                    Style::default().fg(Color::Rgb(128, 128, 128)),
+                )
+                .value(display_playlist_input);
+
+        drop(config_tui);
+        Self {
+            component,
+            config: config.tui,
+        }
+    }
+}
+
+impl Component<Msg, UserEvent> for DisplayPlayList {
+    fn on(&mut self, ev: Event<UserEvent>) -> Option<Msg> {
+        handle_input_ev(
+            &mut self.component,
+            ev,
+            &self.config.read().settings.keys,
+            Msg::ConfigEditor(ConfigEditorMsg::General(KFMsg::Next)),
+            Msg::ConfigEditor(ConfigEditorMsg::General(KFMsg::Previous)),
+        )
+    }
+}
+
 #[allow(clippy::needless_pass_by_value)]
 fn handle_input_ev(
     component: &mut dyn MockComponent,
@@ -1005,6 +1044,12 @@ impl Model {
         self.app.remount(
             Id::ConfigEditor(IdConfigEditor::General(IdCEGeneral::MusicDir)),
             Box::new(MusicDir::new(self.get_combined_settings())),
+            Vec::new(),
+        )?;
+
+        self.app.remount(
+            Id::ConfigEditor(IdConfigEditor::General(IdCEGeneral::DisplayPlayList)),
+            Box::new(DisplayPlayList::new(self.get_combined_settings())),
             Vec::new(),
         )?;
 
