@@ -409,6 +409,7 @@ pub const GENERAL_FOCUS_ORDER: &[IdCEGeneral] = &[
     IdCEGeneral::PlayerUDSPath,
     IdCEGeneral::PlayerBackend,
     IdCEGeneral::ExtraYtdlpArgs,
+    IdCEGeneral::DisplayPlayList,
 ];
 
 /// This array defines the order the IDs listed are displayed and which gains next / previous focus.
