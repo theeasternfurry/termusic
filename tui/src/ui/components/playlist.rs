@@ -325,7 +325,16 @@ impl Model {
             return;
         }
 
-        let headers = &["Duration", "Artist", "Title", "Album"];
+        let headers = {
+            let config = self.config_tui.read();
+            config
+                .settings
+                .display_layout
+                .list
+                .split(';')
+                .map(ToString::to_string)
+                .collect::<Vec<String>>()
+        };
         self.app
             .attr(
                 &Id::Playlist,
@@ -333,8 +342,7 @@ impl Model {
                 AttrValue::Payload(PropPayload::Vec(
                     headers
                         .iter()
-                        .map(|x| PropValue::Str((*x).to_string()))
-                        // .map(|x| PropValue::Str(x.as_ref().to_string()))
+                        .map(|x| PropValue::Str(x.to_title_case()))
                         .collect(),
                 )),
             )
