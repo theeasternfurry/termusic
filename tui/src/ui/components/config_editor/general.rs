@@ -129,7 +129,7 @@ pub struct DisplayPlayList {
 impl DisplayPlayList {
     pub fn new(config: CombinedSettings) -> Self {
         let config_tui = config.tui.read();
-        let display_playlist_input = String::new();
+        let display_playlist_input = config_tui.settings.display_layout.list.clone();
         let component = common_input_comp(&config_tui, " Display Playlist (use ; to separate) ")
             .input_type(InputType::Text)
             .placeholder(
@@ -1047,12 +1047,6 @@ impl Model {
         )?;
 
         self.app.remount(
-            Id::ConfigEditor(IdConfigEditor::General(IdCEGeneral::DisplayPlayList)),
-            Box::new(DisplayPlayList::new(self.get_combined_settings())),
-            Vec::new(),
-        )?;
-
-        self.app.remount(
             Id::ConfigEditor(IdConfigEditor::General(IdCEGeneral::ExitConfirmation)),
             Box::new(ExitConfirmation::new(self.config_tui.clone())),
             Vec::new(),
@@ -1166,6 +1160,12 @@ impl Model {
             Vec::new(),
         )?;
 
+        self.app.remount(
+            Id::ConfigEditor(IdConfigEditor::General(IdCEGeneral::DisplayPlayList)),
+            Box::new(DisplayPlayList::new(self.get_combined_settings())),
+            Vec::new(),
+        )?;
+
         Ok(())
     }
 
@@ -1245,6 +1245,10 @@ impl Model {
 
         self.app.umount(&Id::ConfigEditor(IdConfigEditor::General(
             IdCEGeneral::ExtraYtdlpArgs,
+        )))?;
+
+        self.app.umount(&Id::ConfigEditor(IdConfigEditor::General(
+            IdCEGeneral::DisplayPlayList,
         )))?;
 
         Ok(())
