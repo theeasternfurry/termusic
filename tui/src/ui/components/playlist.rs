@@ -19,7 +19,7 @@ use termusiclib::player::{
 };
 use termusiclib::track::Track;
 use termusiclib::track::{DurationFmtShort, PodcastTrackData};
-use termusiclib::utils::{filetype_supported, is_playlist, playlist_get_vec};
+use termusiclib::utils::{StringUtils, filetype_supported, is_playlist, playlist_get_vec};
 use tui_realm_stdlib::Table;
 use tuirealm::props::{Alignment, BorderType, PropPayload, PropValue, TableBuilder, TextSpan};
 use tuirealm::props::{Borders, Style};
@@ -45,22 +45,6 @@ pub struct Playlist {
     config: SharedTuiSettings,
 }
 
-fn to_title_case(s: &str) -> String {
-    s.split(' ')
-        .map(|word| {
-            let mut chars = word.chars();
-            match chars.next() {
-                None => String::new(),
-                Some(first) => {
-                    first.to_uppercase().collect::<String>()
-                        + chars.as_str().to_lowercase().as_str()
-                }
-            }
-        })
-        .collect::<Vec<_>>()
-        .join(" ")
-}
-
 impl Playlist {
     pub fn new(config: SharedTuiSettings) -> Self {
         let component = {
@@ -74,7 +58,7 @@ impl Playlist {
                 .map(ToString::to_string)
                 .collect();
 
-            let display_headers: Vec<String> = headers.iter().map(|h| to_title_case(h)).collect();
+            let display_headers: Vec<String> = headers.iter().map(|h| h.to_title_case()).collect();
 
             let widths = {
                 let mut widths = Vec::with_capacity(headers.len());

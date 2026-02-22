@@ -144,6 +144,8 @@ pub trait StringUtils {
     fn substr(&self, start: usize, length: usize) -> &str;
     /// Counts the total number of Unicode graphemes in the String.
     fn grapheme_len(&self) -> usize;
+    /// Converts string to title case.
+    fn to_title_case(&self) -> String;
 }
 
 impl StringUtils for str {
@@ -175,6 +177,22 @@ impl StringUtils for str {
     fn grapheme_len(&self) -> usize {
         self.graphemes(true).count()
     }
+
+    fn to_title_case(&self) -> String {
+        self.split(' ')
+            .map(|word| {
+                let mut chars = word.chars();
+                match chars.next() {
+                    None => String::new(),
+                    Some(first) => {
+                        first.to_uppercase().collect::<String>()
+                            + chars.as_str().to_lowercase().as_str()
+                    }
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ")
+    }
 }
 
 // passthrough impl for "String", otherwise you would always have to cast it manually
@@ -187,6 +205,11 @@ impl StringUtils for String {
     #[inline]
     fn grapheme_len(&self) -> usize {
         self.as_str().grapheme_len()
+    }
+
+    #[inline]
+    fn to_title_case(&self) -> String {
+        self.as_str().to_title_case()
     }
 }
 
