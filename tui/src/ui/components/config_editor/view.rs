@@ -202,7 +202,7 @@ impl Model {
                 }
             });
 
-        let cells = UniformDynamicGrid::new(20, 3, 56 + 2)
+        let cells = UniformDynamicGrid::new(21, 3, 56 + 2)
             .draw_row_low_space()
             .distribute_row_space()
             .focus_node(focus_elem)
