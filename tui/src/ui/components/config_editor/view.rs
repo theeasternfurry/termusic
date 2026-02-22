@@ -238,6 +238,7 @@ impl Model {
             &Id::ConfigEditor(IdConfigEditor::General(IdCEGeneral::PlayerBackend)) => cells[18],
 
             &Id::ConfigEditor(IdConfigEditor::General(IdCEGeneral::ExtraYtdlpArgs)) => cells[19],
+            &Id::ConfigEditor(IdConfigEditor::General(IdCEGeneral::DisplayPlayList)) => cells[20],
         }
     }
 
