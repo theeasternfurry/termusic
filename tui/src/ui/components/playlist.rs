@@ -45,6 +45,22 @@ pub struct Playlist {
     config: SharedTuiSettings,
 }
 
+fn to_title_case(s: &str) -> String {
+    s.split(' ')
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(first) => {
+                    first.to_uppercase().collect::<String>()
+                        + chars.as_str().to_lowercase().as_str()
+                }
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 impl Playlist {
     pub fn new(config: SharedTuiSettings) -> Self {
         let component = {
@@ -58,12 +74,13 @@ impl Playlist {
                 .map(ToString::to_string)
                 .collect();
 
+            let display_headers: Vec<String> = headers.iter().map(|h| to_title_case(h)).collect();
+
             let widths = {
                 let mut widths = Vec::with_capacity(headers.len());
 
                 for header in &headers {
-                    let header_lower = header.to_lowercase();
-                    let width = match header_lower.as_str() {
+                    let width = match header.as_str() {
                         "duration" => 8,
                         "artist" => 22,
                         "title" => 27,
@@ -81,7 +98,8 @@ impl Playlist {
                     }
                     3 => {
                         let total: u16 = widths.iter().sum();
-                        let mut adjusted: Vec<u16> = widths.iter().map(|w| w * 95 / total).collect();
+                        let mut adjusted: Vec<u16> =
+                            widths.iter().map(|w| w * 95 / total).collect();
 
                         for (i, header) in headers.iter().enumerate() {
                             if header.to_lowercase() == "duration" && adjusted[i] < 8 {
@@ -99,17 +117,18 @@ impl Playlist {
                         let total: u16 = widths.iter().sum();
 
                         if headers.len() == 4
-                            && headers[0].to_lowercase() == "duration"
-                            && headers[1].to_lowercase() == "artist"
-                            && headers[2].to_lowercase() == "title"
-                            && headers[3].to_lowercase() == "album"
+                            && headers[0] == "duration"
+                            && headers[1] == "artist"
+                            && headers[2] == "title"
+                            && headers[3] == "album"
                         {
                             vec![8, 22, 27, 43]
                         } else {
-                            let mut adjusted: Vec<u16> = widths.iter().map(|w| w * 95 / total).collect();
+                            let mut adjusted: Vec<u16> =
+                                widths.iter().map(|w| w * 95 / total).collect();
 
                             for (i, header) in headers.iter().enumerate() {
-                                if header.to_lowercase() == "duration" && adjusted[i] < 8 {
+                                if header == "duration" && adjusted[i] < 8 {
                                     adjusted[i] = 8;
                                 }
                             }
@@ -141,7 +160,7 @@ impl Playlist {
                 .rewind(false)
                 .step(4)
                 .row_height(1)
-                .headers(&headers)
+                .headers(&display_headers)
                 .column_spacing(2)
                 .widths(&widths)
                 .table(
@@ -734,8 +753,7 @@ impl Model {
             }
 
             for header in &headers {
-                let header_lower = header.to_lowercase();
-                match header_lower.as_str() {
+                match header.as_str() {
                     "duration" => {
                         table.add_col(TextSpan::new(duration_str.as_str()));
                     }
@@ -758,8 +776,7 @@ impl Model {
         }
         if self.playback.playlist.is_empty() {
             for header in &headers {
-                let header_lower = header.to_lowercase();
-                match header_lower.as_str() {
+                match header.as_str() {
                     "duration" => {
                         table.add_col(TextSpan::from("0"));
                     }
