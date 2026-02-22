@@ -195,6 +195,7 @@ impl Model {
                         IdCEGeneral::PlayerUDSPath => 17,
                         IdCEGeneral::PlayerBackend => 18,
                         IdCEGeneral::ExtraYtdlpArgs => 19,
+                        IdCEGeneral::DisplayPlayList => 20,
                     })
                 } else {
                     None
