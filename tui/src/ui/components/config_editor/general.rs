@@ -130,14 +130,13 @@ impl DisplayPlayList {
     pub fn new(config: CombinedSettings) -> Self {
         let config_tui = config.tui.read();
         let display_playlist_input = String::new();
-        let component =
-            common_input_comp(&config_tui, " Display Playlist (use ; to separate) ")
-                .input_type(InputType::Text)
-                .placeholder(
-                    "duration;artist;title;album",
-                    Style::default().fg(Color::Rgb(128, 128, 128)),
-                )
-                .value(display_playlist_input);
+        let component = common_input_comp(&config_tui, " Display Playlist (use ; to separate) ")
+            .input_type(InputType::Text)
+            .placeholder(
+                "duration;artist;title;album",
+                Style::default().fg(Color::Rgb(128, 128, 128)),
+            )
+            .value(display_playlist_input);
 
         drop(config_tui);
         Self {
