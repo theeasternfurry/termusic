@@ -49,6 +49,82 @@ impl Playlist {
     pub fn new(config: SharedTuiSettings) -> Self {
         let component = {
             let config = config.read();
+
+            let headers: Vec<String> = config
+                .settings
+                .display_layout
+                .list
+                .split(';')
+                .map(ToString::to_string)
+                .collect();
+
+            let widths = {
+                let mut widths = Vec::with_capacity(headers.len());
+
+                for header in &headers {
+                    let header_lower = header.to_lowercase();
+                    let width = match header_lower.as_str() {
+                        "duration" => 8,
+                        "artist" => 22,
+                        "title" => 27,
+                        "album" => 43,
+                        _ => 25,
+                    };
+                    widths.push(width);
+                }
+
+                match headers.len() {
+                    1 => vec![100],
+                    2 => {
+                        let total: u16 = widths.iter().sum();
+                        widths.iter().map(|w| (w * 100 / total).max(15)).collect()
+                    }
+                    3 => {
+                        let total: u16 = widths.iter().sum();
+                        let mut adjusted: Vec<u16> = widths.iter().map(|w| w * 95 / total).collect();
+
+                        for (i, header) in headers.iter().enumerate() {
+                            if header.to_lowercase() == "duration" && adjusted[i] < 8 {
+                                adjusted[i] = 8;
+                            }
+                        }
+
+                        let sum: u16 = adjusted.iter().sum();
+                        if let Some(last) = adjusted.last_mut() {
+                            *last += 100 - sum;
+                        }
+                        adjusted
+                    }
+                    4 => {
+                        let total: u16 = widths.iter().sum();
+
+                        if headers.len() == 4
+                            && headers[0].to_lowercase() == "duration"
+                            && headers[1].to_lowercase() == "artist"
+                            && headers[2].to_lowercase() == "title"
+                            && headers[3].to_lowercase() == "album"
+                        {
+                            vec![8, 22, 27, 43]
+                        } else {
+                            let mut adjusted: Vec<u16> = widths.iter().map(|w| w * 95 / total).collect();
+
+                            for (i, header) in headers.iter().enumerate() {
+                                if header.to_lowercase() == "duration" && adjusted[i] < 8 {
+                                    adjusted[i] = 8;
+                                }
+                            }
+
+                            let sum: u16 = adjusted.iter().sum();
+                            if let Some(last) = adjusted.last_mut() {
+                                *last += 100 - sum;
+                            }
+                            adjusted
+                        }
+                    }
+                    _ => widths,
+                }
+            };
+
             Table::default()
                 .borders(
                     Borders::default()
@@ -65,9 +141,9 @@ impl Playlist {
                 .rewind(false)
                 .step(4)
                 .row_height(1)
-                .headers(["Duration", "Artist", "Title", "Album"])
+                .headers(&headers)
                 .column_spacing(2)
-                .widths(&[12, 20, 25, 43])
+                .widths(&widths)
                 .table(
                     TableBuilder::default()
                         .add_col(TextSpan::from("Empty"))
@@ -612,6 +688,16 @@ impl Model {
         }
 
         let mut table: TableBuilder = TableBuilder::default();
+        let headers = {
+            let config = self.config_tui.read();
+            config
+                .settings
+                .display_layout
+                .list
+                .split(';')
+                .map(ToString::to_string)
+                .collect::<Vec<String>>()
+        };
 
         for (idx, track) in self.playback.playlist.tracks().iter().enumerate() {
             if idx > 0 {
@@ -647,17 +733,44 @@ impl Model {
                 .into();
             }
 
-            table
-                .add_col(TextSpan::new(duration_str.as_str()))
-                .add_col(TextSpan::new(artist).fg(tuirealm::ratatui::style::Color::LightYellow))
-                .add_col(TextSpan::new(title).bold())
-                .add_col(TextSpan::new(album));
+            for header in &headers {
+                let header_lower = header.to_lowercase();
+                match header_lower.as_str() {
+                    "duration" => {
+                        table.add_col(TextSpan::new(duration_str.as_str()));
+                    }
+                    "artist" => {
+                        table.add_col(
+                            TextSpan::new(artist).fg(tuirealm::ratatui::style::Color::LightYellow),
+                        );
+                    }
+                    "title" => {
+                        table.add_col(TextSpan::new(title.clone()).bold());
+                    }
+                    "album" => {
+                        table.add_col(TextSpan::new(album));
+                    }
+                    _ => {
+                        table.add_col(TextSpan::from(""));
+                    }
+                }
+            }
         }
         if self.playback.playlist.is_empty() {
-            table.add_col(TextSpan::from("0"));
-            table.add_col(TextSpan::from("empty playlist"));
-            table.add_col(TextSpan::from(""));
-            table.add_col(TextSpan::from(""));
+            for header in &headers {
+                let header_lower = header.to_lowercase();
+                match header_lower.as_str() {
+                    "duration" => {
+                        table.add_col(TextSpan::from("0"));
+                    }
+                    "artist" => {
+                        table.add_col(TextSpan::from("empty playlist"));
+                    }
+                    _ => {
+                        table.add_col(TextSpan::from(""));
+                    }
+                }
+            }
         }
 
         let table = table.build();
